@@ -1,25 +1,25 @@
 # Changelog
 
-Alle vesentlige endringer i dette prosjektet dokumenteres her.
+All notable changes to this project are documented here.
 
-Formatet følger [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.1.0] - 2026-11-02
 
-### Lagt til
+### Added
 
-- Grunnleggende CLI: les `mvn dependency:tree`-output fra stdin, fil (`--file`), eller ved å kjøre `mvn dependency:tree` selv når stdin ikke er rørlagt.
-- Søkemodus: gitt et pakkenavn, finn alle treff (substreng, case-insensitive) og vis stien fra roten ned til hvert treff.
-- Dump-modus: uten pakkenavn vises hele avhengighetstreet.
-- Fargelegging: roten i fet skrift, direkte avhengigheter i grønt, transitive i gult. Respekterer `NO_COLOR`-konvensjonen automatisk, og kan slås av eksplisitt med `--no-color`.
-- Støtte for multi-modul-prosjekter: hver modul i `dependency:tree`-output behandles som et eget tre.
-- `--include-scope` / `--exclude-scope`: filtrer avhengigheter (og undertreet deres) på Maven-scope. Ukjent scope gir en feilmelding (gyldige: `compile`, `provided`, `runtime`, `test`, `system`) før input leses.
-- `--ignore <PAKKE>`: ekskluder treff som er en (transitiv) avhengighet av en gitt pakke.
-- `--module <NAVN>`: i multi-modul-prosjekter, begrens til modul(er) som matcher et navn.
-- `--search-depth` / `--depth`: skiller søkedybde (hvilke treff som telles) fra visningsdybde (hvor mye av hver sti som vises, med deduplisering av identiske trunkerte stier).
-- `--no-transient`: snarvei for kun direkte avhengigheter.
-- `--json`: strukturert JSON-output for både søk- og dump-modus.
-- `justfile` med `build`, `test`, `lint`, `fmt`, `check` og `install`.
-- GitHub Actions CI (`.github/workflows/ci.yml`): `fmt --check`, `clippy -D warnings` og `test` på Linux, macOS og Windows for hver push/PR.
-- GitHub Actions Release (`.github/workflows/release.yml`): ved push av en `v*.*.*`-tag bygges og publiseres ferdige binærer til GitHub Releases for Linux x86_64 (`.tar.gz` og `.AppImage`), macOS universal x86_64+arm64 (`.tar.gz`), og Windows x86_64 (`.zip`).
-- Dependabot (`.github/dependabot.yml`): ukentlige oppdateringer av både Cargo-avhengigheter og GitHub Actions.
+- Basic CLI: read `mvn dependency:tree` output from stdin, a file (`--file`), or by running `mvn dependency:tree` itself when stdin isn't piped.
+- Search mode: given a package name, find all hits (substring, case-insensitive) and show the path from the root down to each hit.
+- Dump mode: without a package name, the whole dependency tree is shown.
+- Coloring: the root in bold, direct dependencies in green, transitive ones in yellow. Automatically respects the `NO_COLOR` convention, and can be disabled explicitly with `--no-color`.
+- Support for multi-module projects: each module in the `dependency:tree` output is treated as its own tree.
+- `--include-scope` / `--exclude-scope`: filter dependencies (and their subtree) by Maven scope. An unknown scope prints an error (valid: `compile`, `provided`, `runtime`, `test`, `system`) before any input is read.
+- `--ignore <PACKAGE>`: exclude hits that are a (transitive) dependency of a given package.
+- `--module <NAME>`: in multi-module projects, restrict to the module(s) matching a name.
+- `--search-depth` / `--depth`: separates search depth (which hits count) from display depth (how much of each path is shown, with deduplication of identical truncated paths).
+- `--no-transient`: shorthand for direct dependencies only.
+- `--json`: structured JSON output for both search and dump mode.
+- `justfile` with `build`, `test`, `lint`, `fmt`, `check`, and `install`.
+- GitHub Actions CI (`.github/workflows/ci.yml`): `fmt --check`, `clippy -D warnings`, and `test` on Linux, macOS, and Windows for every push/PR.
+- GitHub Actions Release (`.github/workflows/release.yml`): pushing a `v*.*.*` tag builds and publishes binaries to GitHub Releases for Linux x86_64 (`.tar.gz` and `.AppImage`), macOS universal x86_64+arm64 (`.tar.gz`), and Windows x86_64 (`.zip`).
+- Dependabot (`.github/dependabot.yml`): weekly updates for both Cargo dependencies and GitHub Actions.
