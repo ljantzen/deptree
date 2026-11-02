@@ -66,7 +66,7 @@ jobs:
 
           ./appimagetool --appimage-extract-and-run "$APPDIR" "deptree-${VERSION}-x86_64.AppImage"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: linux-artifacts
           path: |
@@ -103,7 +103,7 @@ jobs:
           cp README.md "$DIST/"
           tar -czf "${DIST}.tar.gz" "$DIST"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: macos-artifacts
           path: deptree-*.tar.gz
@@ -132,7 +132,7 @@ jobs:
           cp README.md "$DIST/"
           7z a "${DIST}.zip" "$DIST"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows-artifacts
           path: deptree-*.zip
