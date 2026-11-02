@@ -1,0 +1,159 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-linux:
+    name: Build (Linux x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Package tarball
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          DIST="deptree-${VERSION}-x86_64-linux"
+          mkdir -p "$DIST"
+          cp target/release/deptree "$DIST/"
+          cp README.md "$DIST/"
+          tar -czf "${DIST}.tar.gz" "$DIST"
+
+      - name: Build AppImage
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          APPDIR=AppDir
+
+          mkdir -p "$APPDIR/usr/bin"
+          cp target/release/deptree "$APPDIR/usr/bin/deptree"
+
+          printf '%s\n' \
+            '[Desktop Entry]' \
+            'Name=deptree' \
+            'Exec=deptree' \
+            'Icon=deptree' \
+            'Type=Application' \
+            'Categories=Development;' \
+            'Terminal=true' > "$APPDIR/deptree.desktop"
+
+          # deptree er et CLI-verktøy, men appimagetool krever et ikon.
+          # Dette er et minimalt plassholder-ikon (1x1 px).
+          printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=' \
+            | base64 -d > "$APPDIR/deptree.png"
+
+          printf '%s\n' \
+            '#!/bin/sh' \
+            'HERE="$(dirname "$(readlink -f "$0")")"' \
+            'exec "$HERE/usr/bin/deptree" "$@"' > "$APPDIR/AppRun"
+          chmod +x "$APPDIR/AppRun" "$APPDIR/usr/bin/deptree"
+
+          curl -fL -o appimagetool \
+            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+
+          ./appimagetool --appimage-extract-and-run "$APPDIR" "deptree-${VERSION}-x86_64.AppImage"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            deptree-*.tar.gz
+            deptree-*.AppImage
+
+  build-macos:
+    name: Build (macOS universal)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build both architectures
+        run: |
+          cargo build --release --target x86_64-apple-darwin
+          cargo build --release --target aarch64-apple-darwin
+
+      - name: Create universal binary and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          DIST="deptree-${VERSION}-macos-universal"
+          mkdir -p "$DIST"
+          lipo -create -output "$DIST/deptree" \
+            target/x86_64-apple-darwin/release/deptree \
+            target/aarch64-apple-darwin/release/deptree
+          cp README.md "$DIST/"
+          tar -czf "${DIST}.tar.gz" "$DIST"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: deptree-*.tar.gz
+
+  build-windows:
+    name: Build (Windows x86_64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Package zip
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          DIST="deptree-${VERSION}-x86_64-windows"
+          mkdir -p "$DIST"
+          cp target/release/deptree.exe "$DIST/"
+          cp README.md "$DIST/"
+          7z a "${DIST}.zip" "$DIST"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: deptree-*.zip
+
+  release:
+    name: Publish release
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release
+          find artifacts -type f -exec cp {} release/ \;
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true

@@ -1,0 +1,15 @@
+# Cargo build output
+/target
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS cruft
+.DS_Store
+
+# Local environment / secrets
+.env
