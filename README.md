@@ -170,3 +170,17 @@ just lint      # cargo clippy -D warnings
 just fmt       # cargo fmt
 just check     # fmt-check + lint + test
 ```
+
+### Cutting a release
+
+```sh
+just release 0.2.0
+```
+
+This runs `release.sh`, which:
+
+1. Verifies the working tree is clean, you're on `main`, the tag doesn't already exist, and `CHANGELOG.md` has an `[Unreleased]` section.
+2. Bumps the version in `Cargo.toml` and refreshes `Cargo.lock`.
+3. Turns the `[Unreleased]` section in `CHANGELOG.md` into a dated `[0.2.0]` section.
+4. Runs `just check`.
+5. Commits, tags `v0.2.0`, and (after confirmation) pushes — which triggers the [release workflow](.github/workflows/release.yml) to build and publish the binaries.

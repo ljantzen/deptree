@@ -37,6 +37,11 @@ check: fmt-check lint test
 install: check
     cargo install --path .
 
+# Lag en ny release: oppdater versjon/changelog, commit, tag (og evt push).
+# F.eks: just release 0.2.0
+release version:
+    ./release.sh {{version}}
+
 # Rydd opp build-artefakter
 clean:
     cargo clean
